@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { readFileStream, statObject } from "@/lib/storage";
+import { requireVaultUnlocked } from "@/lib/vault";
 import { Readable } from "stream";
 
 export const runtime = "nodejs";
@@ -18,6 +19,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
   const file = await prisma.file.findFirst({ where: { id: params.id, ownerId: user.id } });
   if (!file) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  if (file.isSecure) await requireVaultUnlocked(user.id);
 
   const key = useThumb && file.thumbnailKey ? file.thumbnailKey : file.storageKey;
   const mime = useThumb && file.thumbnailKey ? "image/webp" : file.mimeType;

@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { removeObject } from "@/lib/storage";
 import { safeName } from "@/lib/utils";
+import { requireVaultUnlocked } from "@/lib/vault";
 
 export const runtime = "nodejs";
 
@@ -20,8 +21,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     where: { id: params.id, ownerId: user.id },
   });
   if (!folder) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  if (folder.isSecure) await requireVaultUnlocked(user.id);
 
-  // breadcrumb
   const trail: { id: string; name: string }[] = [];
   let current: { id: string; name: string; parentId: string | null } | null = folder;
   while (current) {
@@ -43,6 +44,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const folder = await prisma.folder.findFirst({ where: { id: params.id, ownerId: user.id } });
   if (!folder) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  if (folder.isSecure) await requireVaultUnlocked(user.id);
 
   const data = Patch.parse(await req.json());
 
@@ -52,7 +54,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (data.parentId) {
     const parent = await prisma.folder.findFirst({ where: { id: data.parentId, ownerId: user.id } });
     if (!parent) return NextResponse.json({ error: "Carpeta padre no encontrada" }, { status: 404 });
-    // Prevent moving into a descendant.
+    if (parent.isSecure !== folder.isSecure) {
+      return NextResponse.json(
+        { error: "No puedes mover carpetas entre la carpeta segura y el resto" },
+        { status: 400 },
+      );
+    }
     let cur: typeof parent | null = parent;
     while (cur) {
       if (cur.parentId === folder.id) {
@@ -74,13 +81,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   return NextResponse.json({ folder: updated });
 }
 
-// Recursive delete: remove all nested files (with their objects) and folders.
+// Borrado recursivo: elimina archivos hijos (con sus blobs) y carpetas.
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const folder = await prisma.folder.findFirst({ where: { id: params.id, ownerId: user.id } });
   if (!folder) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  if (folder.isSecure) await requireVaultUnlocked(user.id);
 
   const folderIds = await collectDescendants(folder.id, user.id);
   folderIds.push(folder.id);

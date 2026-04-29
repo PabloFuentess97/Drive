@@ -28,11 +28,29 @@ interface BreadcrumbItem {
   name: string;
 }
 
-export function FileBrowser({ folderId }: { folderId: string | null }) {
+interface FileBrowserProps {
+  folderId: string | null;
+  /** Modo carpeta segura: añade ?secure=1 en las llamadas y cambia la navegación. */
+  secure?: boolean;
+  /** Etiqueta del breadcrumb raíz (por defecto "Mi unidad"). */
+  rootName?: string;
+  /** Prefijo de URL al navegar a una carpeta. */
+  routePrefix?: string;
+  /** Si está definido, muestra un botón "Bloquear" en la barra superior. */
+  onLock?: () => void;
+}
+
+export function FileBrowser({
+  folderId,
+  secure = false,
+  rootName = "Mi unidad",
+  routePrefix = "/drive",
+  onLock,
+}: FileBrowserProps) {
   const router = useRouter();
   const [folders, setFolders] = useState<Folder[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
-  const [breadcrumb, setBreadcrumb] = useState<BreadcrumbItem[]>([{ id: null, name: "Mi unidad" }]);
+  const [breadcrumb, setBreadcrumb] = useState<BreadcrumbItem[]>([{ id: null, name: rootName }]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [preview, setPreview] = useState<FileItem | null>(null);
@@ -41,14 +59,21 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<{ name: string; progress: number }[]>([]);
 
+  const folderHref = (id: string | null) => (id ? `${routePrefix}/${id}` : routePrefix);
+
   const load = useCallback(
     async (q?: string) => {
       setLoading(true);
       const params = new URLSearchParams();
       if (folderId) params.set("folderId", folderId);
       if (q) params.set("q", q);
+      if (secure) params.set("secure", "1");
       try {
         const res = await fetch(`/api/files?${params.toString()}`);
+        if (res.status === 423) {
+          onLock?.();
+          return;
+        }
         const data = await res.json();
         setFolders(data.folders || []);
         setFiles(data.files || []);
@@ -74,15 +99,17 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
 
       if (folderId) {
         const r = await fetch(`/api/folders/${folderId}`);
-        if (r.ok) {
+        if (r.status === 423) {
+          onLock?.();
+        } else if (r.ok) {
           const d = await r.json();
-          setBreadcrumb([{ id: null, name: "Mi unidad" }, ...d.breadcrumb]);
+          setBreadcrumb([{ id: null, name: rootName }, ...d.breadcrumb]);
         }
       } else {
-        setBreadcrumb([{ id: null, name: "Mi unidad" }]);
+        setBreadcrumb([{ id: null, name: rootName }]);
       }
     },
-    [folderId],
+    [folderId, secure, rootName, onLock],
   );
 
   useEffect(() => {
@@ -106,6 +133,7 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
     const form = new FormData();
     form.append("file", file);
     if (folderId) form.append("folderId", folderId);
+    if (secure) form.append("secure", "1");
 
     if (!navigator.onLine) {
       await offlineDb.queueUpload({
@@ -155,8 +183,12 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
     const res = await fetch("/api/folders", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name, parentId: folderId }),
+      body: JSON.stringify({ name, parentId: folderId, secure }),
     });
+    if (res.status === 423) {
+      onLock?.();
+      return;
+    }
     if (res.ok) load();
     else {
       const d = await res.json();
@@ -238,7 +270,7 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
             <div key={`${b.id}-${i}`} className="flex items-center gap-2 text-sm">
               {i > 0 && <span className="text-slate-400">/</span>}
               <button
-                onClick={() => router.push(b.id ? `/drive/${b.id}` : "/drive")}
+                onClick={() => router.push(folderHref(b.id))}
                 className={cn(
                   "rounded-md px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800",
                   i === breadcrumb.length - 1 && "font-semibold",
@@ -271,6 +303,15 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
         >
           Subir
         </button>
+        {onLock && (
+          <button
+            onClick={onLock}
+            className="rounded-md border border-amber-500 px-3 py-1.5 text-sm font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+            title="Bloquear la carpeta segura"
+          >
+            🔒 Bloquear
+          </button>
+        )}
         <input
           ref={inputRef}
           type="file"
@@ -319,7 +360,7 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
                       className="group flex flex-col rounded-xl border border-slate-200 bg-white p-3 hover:border-brand-400 dark:border-slate-800 dark:bg-slate-900"
                     >
                       <button
-                        onClick={() => router.push(`/drive/${f.id}`)}
+                        onClick={() => router.push(folderHref(f.id))}
                         className="flex flex-col items-center gap-2 text-left"
                       >
                         <span className="text-3xl">📁</span>
@@ -383,15 +424,19 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
                           <span>{formatDate(f.updatedAt)}</span>
                         </div>
                         <div className="mt-1 flex flex-wrap gap-1 opacity-0 group-hover:opacity-100">
-                          <button onClick={() => setSharing(f)} className="rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
-                            Compartir
-                          </button>
+                          {!secure && (
+                            <button onClick={() => setSharing(f)} className="rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
+                              Compartir
+                            </button>
+                          )}
                           <button onClick={() => renameFile(f)} className="rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
                             Renombrar
                           </button>
-                          <button onClick={() => pinOffline(f)} className="rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
-                            Sin conexión
-                          </button>
+                          {!secure && (
+                            <button onClick={() => pinOffline(f)} className="rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
+                              Sin conexión
+                            </button>
+                          )}
                           <button onClick={() => deleteFile(f)} className="rounded px-1.5 py-0.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30">
                             Eliminar
                           </button>

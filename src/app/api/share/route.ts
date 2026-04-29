@@ -20,6 +20,12 @@ export async function POST(req: Request) {
   const data = Body.parse(await req.json());
   const file = await prisma.file.findFirst({ where: { id: data.fileId, ownerId: user.id } });
   if (!file) return NextResponse.json({ error: "Archivo no encontrado" }, { status: 404 });
+  if (file.isSecure) {
+    return NextResponse.json(
+      { error: "No se pueden compartir archivos de la carpeta segura" },
+      { status: 403 },
+    );
+  }
 
   const token = randomBytes(24).toString("base64url");
   const expiresAt = data.expiresInHours

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { verifyJwt } from "@/lib/jwt";
 
-const PROTECTED = ["/drive", "/recent", "/account", "/shared"];
+const PROTECTED = ["/drive", "/secure", "/recent", "/account", "/shared"];
 const AUTH_ONLY = ["/login", "/register"];
 
 export async function middleware(req: NextRequest) {

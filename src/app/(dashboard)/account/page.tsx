@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatBytes } from "@/lib/utils";
 import { offlineDb } from "@/lib/offline-db";
+import { VaultManager } from "@/components/VaultManager";
 
 interface Stats {
   quotaBytes: string;
@@ -58,6 +59,10 @@ export default function AccountPage() {
             <li>{cachedCount} guardados sin conexión</li>
           </ul>
         </section>
+      </div>
+
+      <div className="mt-6">
+        <VaultManager />
       </div>
 
       <section className="mt-6 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">

@@ -16,6 +16,7 @@ Diseñado para correr en un único VPS con Docker — sin almacenamiento de terc
 | Carpetas          | Crear / renombrar / mover / borrar recursivo con protección anti-ciclos.                                     |
 | Almacenamiento    | Subidas en streaming a disco, checksum SHA-256 y miniaturas automáticas (sharp).                             |
 | Compartición      | Enlaces públicos con token, contraseña opcional, caducidad y límite de descargas.                            |
+| Carpeta segura    | Sección protegida con una segunda contraseña (JWT efímero de 15 min). Los archivos seguros no se comparten.   |
 | Cuotas            | Límite por usuario, controlado en servidor antes y después de subir.                                         |
 | Streaming         | Soporte de `Range` HTTP → vídeo seekable y descargas grandes reanudables.                                    |
 | PWA               | `manifest.json`, prompt de instalación, página offline dedicada.                                             |
@@ -237,6 +238,17 @@ npm run dev
 - Una fila `Share` guarda token base64url, hash bcrypt opcional de la contraseña, fecha de caducidad y límite de descargas.
 - El endpoint público valida todo antes de abrir el stream e incrementa el contador.
 - El propietario puede listar y revocar sus enlaces desde `/shared`.
+- **Los archivos marcados como seguros no se pueden compartir** (la API devuelve 403).
+
+### Carpeta segura (Vault)
+
+- Cada usuario puede activar una segunda contraseña en `/secure` (también se gestiona desde `/account`).
+- La contraseña se guarda como `bcrypt` en `User.vaultPasswordHash`. Es **independiente** de la contraseña de la cuenta.
+- Los archivos y carpetas dentro llevan el flag `isSecure = true`. El flag se hereda al crear nuevos elementos.
+- Al desbloquear, el servidor emite un **JWT efímero (15 min)** firmado con `JWT_SECRET` y lo guarda en una cookie aparte (`drive_vault`, `httpOnly`, `Secure`).
+- Cualquier ruta de la API (listar, descargar, renombrar, borrar) que toque un item con `isSecure = true` exige esta cookie. Sin ella, la API devuelve `423 Locked` y la UI muestra de nuevo la pantalla de desbloqueo.
+- Si pierdes la contraseña: los archivos siguen existiendo pero son inaccesibles. Puedes desactivar la carpeta segura **con la propia contraseña** desde `/account` (no hay reset por la cuenta principal: es deliberado, esa es la protección).
+- Los recientes y la búsqueda global **nunca incluyen** archivos seguros.
 
 ### Healthcheck
 
