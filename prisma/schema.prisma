@@ -1,0 +1,108 @@
+// Personal Drive – Prisma schema
+// Each user owns a tree of folders and files. Files are stored on disk
+// (path = STORAGE_DIR/<userId>/<fileId>) and only the metadata lives here.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  passwordHash String
+  role         Role      @default(USER)
+  quotaBytes   BigInt    @default(10737418240) // 10 GB
+  usedBytes    BigInt    @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  folders   Folder[]
+  files     File[]
+  shares    Share[]
+  sessions  Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  userAgent String?
+  ip        String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner    User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  parent   Folder?  @relation("FolderToFolder", fields: [parentId], references: [id], onDelete: Cascade)
+  children Folder[] @relation("FolderToFolder")
+  files    File[]
+
+  @@unique([ownerId, parentId, name])
+  @@index([ownerId])
+  @@index([parentId])
+}
+
+model File {
+  id          String   @id @default(cuid())
+  name        String
+  mimeType    String
+  size        BigInt
+  storageKey  String   @unique // relative path inside STORAGE_DIR
+  checksum    String?
+  ownerId     String
+  folderId    String?
+  width       Int?
+  height      Int?
+  thumbnailKey String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner  User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  shares Share[]
+
+  @@index([ownerId])
+  @@index([folderId])
+  @@index([createdAt])
+}
+
+model Share {
+  id           String    @id @default(cuid())
+  token        String    @unique
+  fileId       String
+  ownerId      String
+  passwordHash String?
+  expiresAt    DateTime?
+  maxDownloads Int?
+  downloads    Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  file  File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([fileId])
+  @@index([ownerId])
+}

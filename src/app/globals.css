@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body {
+  @apply h-full bg-slate-50 text-slate-900 antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
+    @apply bg-slate-950 text-slate-100;
+  }
+}
+
+/* Drag & drop overlay */
+.drop-overlay {
+  @apply pointer-events-none fixed inset-0 z-50 hidden items-center justify-center bg-brand-500/10 backdrop-blur-sm;
+}
+.drop-overlay.active {
+  @apply flex;
+}

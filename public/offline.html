@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Offline · PersonalDrive</title>
+    <style>
+      :root { color-scheme: light dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 2rem;
+        text-align: center;
+      }
+      .card {
+        max-width: 28rem;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 1rem;
+        padding: 2rem;
+      }
+      h1 { font-size: 1.5rem; margin: 0 0 0.5rem; }
+      p { color: #cbd5e1; line-height: 1.5; }
+      a {
+        display: inline-block;
+        margin-top: 1.5rem;
+        padding: 0.6rem 1rem;
+        background: #3a61ff;
+        color: white;
+        border-radius: 0.5rem;
+        text-decoration: none;
+      }
+      a:hover { background: #2440f5; }
+      .badge {
+        display: inline-block;
+        margin-bottom: 1rem;
+        padding: 0.25rem 0.75rem;
+        background: #f59e0b22;
+        color: #fbbf24;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <span class="badge">Offline</span>
+      <h1>You are offline</h1>
+      <p>
+        We couldn't reach the server. Files you have pinned for offline access
+        are still available from the app.
+      </p>
+      <a href="/drive">Open my Drive</a>
+    </div>
+  </body>
+</html>

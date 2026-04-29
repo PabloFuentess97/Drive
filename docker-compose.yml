@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-drive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-drive}
+      POSTGRES_DB: ${POSTGRES_DB:-drive}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-drive} -d ${POSTGRES_DB:-drive}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-drive}:${POSTGRES_PASSWORD:-drive}@db:5432/${POSTGRES_DB:-drive}?schema=public
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your .env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      STORAGE_DIR: /data/uploads
+      DEFAULT_QUOTA_BYTES: ${DEFAULT_QUOTA_BYTES:-10737418240}
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-2147483648}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-PersonalDrive}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    volumes:
+      - storage:/data/uploads
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+volumes:
+  db-data:
+  storage:

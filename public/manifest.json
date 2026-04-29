@@ -1,0 +1,29 @@
+{
+  "name": "PersonalDrive",
+  "short_name": "Drive",
+  "description": "Self-hosted personal drive",
+  "start_url": "/drive",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#3a61ff",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "My Drive", "url": "/drive", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Recent", "url": "/recent" }
+  ]
+}

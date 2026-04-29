@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Testing
+coverage
+
+# Next
+.next
+out
+build
+dist
+
+# Production
+*.local
+
+# Misc
+.DS_Store
+*.pem
+.vscode
+.idea
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+.env
+.env*.local
+.env.production
+.env.development
+
+# Storage
+uploads/
+storage/
+
+# Prisma
+prisma/dev.db
