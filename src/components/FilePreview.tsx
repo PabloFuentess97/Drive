@@ -30,7 +30,7 @@ export function FilePreview({ file, onClose }: { file: FileLite; onClose: () => 
   } else {
     body = (
       <a href={url} download={file.name} className="rounded-md bg-brand-600 px-4 py-2 text-white">
-        Download {file.name}
+        Descargar {file.name}
       </a>
     );
   }
@@ -51,13 +51,13 @@ export function FilePreview({ file, onClose }: { file: FileLite; onClose: () => 
               href={`/api/files/${file.id}/download?disposition=attachment`}
               className="rounded-md bg-slate-700 px-3 py-1.5 text-sm hover:bg-slate-600"
             >
-              Download
+              Descargar
             </a>
             <button
               onClick={onClose}
               className="rounded-md bg-slate-700 px-3 py-1.5 text-sm hover:bg-slate-600"
             >
-              Close
+              Cerrar
             </button>
           </div>
         </div>

@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 // GET /api/files?folderId=...&q=...   -> list files & folders inside a folder
 export async function GET(req: Request) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const folderId = searchParams.get("folderId") || null;
@@ -66,31 +66,31 @@ function serializeFile(f: any) {
 // POST /api/files  multipart/form-data: file, folderId?
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const form = await req.formData();
   const file = form.get("file");
   const folderId = (form.get("folderId") as string | null) || null;
 
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    return NextResponse.json({ error: "No se ha proporcionado ningún archivo" }, { status: 400 });
   }
 
   if (file.size > env.MAX_UPLOAD_BYTES) {
-    return NextResponse.json({ error: "File exceeds max upload size" }, { status: 413 });
+    return NextResponse.json({ error: "El archivo supera el tamaño máximo permitido" }, { status: 413 });
   }
 
-  // Quota check (size on the request is reliable for browser uploads).
+  // Comprobación de cuota.
   const remaining = Number(user.quotaBytes - user.usedBytes);
   if (file.size > remaining) {
-    return NextResponse.json({ error: "Storage quota exceeded" }, { status: 413 });
+    return NextResponse.json({ error: "Has superado tu cuota de almacenamiento" }, { status: 413 });
   }
 
   if (folderId) {
     const folder = await prisma.folder.findFirst({
       where: { id: folderId, ownerId: user.id },
     });
-    if (!folder) return NextResponse.json({ error: "Folder not found" }, { status: 404 });
+    if (!folder) return NextResponse.json({ error: "Carpeta no encontrada" }, { status: 404 });
   }
 
   const fileId = randomUUID().replace(/-/g, "");
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
   if (Number(user.usedBytes) + stored.size > Number(user.quotaBytes)) {
     await removeObject(user.id, stored.storageKey);
     if (stored.thumbnailKey) await removeObject(user.id, stored.thumbnailKey);
-    return NextResponse.json({ error: "Storage quota exceeded" }, { status: 413 });
+    return NextResponse.json({ error: "Has superado tu cuota de almacenamiento" }, { status: 413 });
   }
 
   const created = await prisma.$transaction(async (tx) => {

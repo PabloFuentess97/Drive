@@ -14,7 +14,7 @@ const Body = z.object({
 // GET /api/folders -> full tree of the current user
 export async function GET() {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const folders = await prisma.folder.findMany({
     where: { ownerId: user.id },
@@ -27,14 +27,14 @@ export async function GET() {
 // POST /api/folders -> create
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const data = Body.parse(await req.json());
   const parentId = data.parentId || null;
 
   if (parentId) {
     const parent = await prisma.folder.findFirst({ where: { id: parentId, ownerId: user.id } });
-    if (!parent) return NextResponse.json({ error: "Parent not found" }, { status: 404 });
+    if (!parent) return NextResponse.json({ error: "Carpeta padre no encontrada" }, { status: 404 });
   }
 
   try {
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ folder }, { status: 201 });
   } catch (e: any) {
     if (e.code === "P2002") {
-      return NextResponse.json({ error: "A folder with that name already exists here" }, { status: 409 });
+      return NextResponse.json({ error: "Ya existe una carpeta con ese nombre aquí" }, { status: 409 });
     }
     throw e;
   }

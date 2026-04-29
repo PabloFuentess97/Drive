@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     default: process.env.NEXT_PUBLIC_APP_NAME || "PersonalDrive",
     template: `%s · ${process.env.NEXT_PUBLIC_APP_NAME || "PersonalDrive"}`,
   },
-  description: "Self-hosted personal drive with offline support",
+  description: "Almacenamiento personal autohospedado con soporte sin conexión",
   manifest: "/manifest.json",
   appleWebApp: { capable: true, title: process.env.NEXT_PUBLIC_APP_NAME || "PersonalDrive" },
 };
@@ -21,7 +21,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body className="min-h-screen">
         {children}
         <PWAInstaller />

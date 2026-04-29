@@ -32,7 +32,7 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
   const router = useRouter();
   const [folders, setFolders] = useState<Folder[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
-  const [breadcrumb, setBreadcrumb] = useState<BreadcrumbItem[]>([{ id: null, name: "My Drive" }]);
+  const [breadcrumb, setBreadcrumb] = useState<BreadcrumbItem[]>([{ id: null, name: "Mi unidad" }]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [preview, setPreview] = useState<FileItem | null>(null);
@@ -52,19 +52,15 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
         const data = await res.json();
         setFolders(data.folders || []);
         setFiles(data.files || []);
-        // Cache the listing for offline use
-        if ("caches" in window) {
-          // The fetch is automatically cached by the SW
-        }
       } catch {
-        // Offline: try to render queued uploads as ghost entries.
+        // Sin conexión: mostramos las subidas en cola como elementos fantasma.
         const queued = await offlineDb.listQueued();
         setFiles(
           queued
             .filter((q) => q.folderId === folderId)
             .map((q) => ({
               id: q.id,
-              name: q.name + " (pending)",
+              name: q.name + " (pendiente)",
               mimeType: q.blob.type,
               size: q.blob.size.toString(),
               thumbnailKey: null,
@@ -80,10 +76,10 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
         const r = await fetch(`/api/folders/${folderId}`);
         if (r.ok) {
           const d = await r.json();
-          setBreadcrumb([{ id: null, name: "My Drive" }, ...d.breadcrumb]);
+          setBreadcrumb([{ id: null, name: "Mi unidad" }, ...d.breadcrumb]);
         }
       } else {
-        setBreadcrumb([{ id: null, name: "My Drive" }]);
+        setBreadcrumb([{ id: null, name: "Mi unidad" }]);
       }
     },
     [folderId],
@@ -93,7 +89,7 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
     load();
   }, [load]);
 
-  // Sync queued uploads when we come back online.
+  // Reproduce las subidas pendientes cuando vuelve la conexión.
   useEffect(() => {
     function onOnline() {
       syncQueuedUploads().then((n) => {
@@ -105,7 +101,6 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
   }, [load]);
 
   async function uploadOne(file: File) {
-    const tmpKey = file.name + "-" + Date.now();
     setUploading((p) => [...p, { name: file.name, progress: 0 }]);
 
     const form = new FormData();
@@ -138,11 +133,11 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
           }
         };
         xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(xhr.responseText)));
-        xhr.onerror = () => reject(new Error("Network error"));
+        xhr.onerror = () => reject(new Error("Error de red"));
         xhr.send(form);
       });
     } catch (e: any) {
-      alert(`Upload failed: ${e.message}`);
+      alert(`La subida ha fallado: ${e.message}`);
     } finally {
       setUploading((p) => p.filter((u) => u.name !== file.name));
       load();
@@ -155,7 +150,7 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
   }
 
   async function newFolder() {
-    const name = prompt("Folder name");
+    const name = prompt("Nombre de la carpeta");
     if (!name) return;
     const res = await fetch("/api/folders", {
       method: "POST",
@@ -165,12 +160,12 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
     if (res.ok) load();
     else {
       const d = await res.json();
-      alert(d.error || "Failed");
+      alert(d.error || "Error");
     }
   }
 
   async function renameFile(f: FileItem) {
-    const name = prompt("New name", f.name);
+    const name = prompt("Nuevo nombre", f.name);
     if (!name || name === f.name) return;
     const res = await fetch(`/api/files/${f.id}`, {
       method: "PATCH",
@@ -181,13 +176,13 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
   }
 
   async function deleteFile(f: FileItem) {
-    if (!confirm(`Delete ${f.name}?`)) return;
+    if (!confirm(`¿Eliminar ${f.name}?`)) return;
     await fetch(`/api/files/${f.id}`, { method: "DELETE" });
     load();
   }
 
   async function renameFolder(folder: Folder) {
-    const name = prompt("New name", folder.name);
+    const name = prompt("Nuevo nombre", folder.name);
     if (!name || name === folder.name) return;
     await fetch(`/api/folders/${folder.id}`, {
       method: "PATCH",
@@ -198,7 +193,7 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
   }
 
   async function deleteFolder(folder: Folder) {
-    if (!confirm(`Delete "${folder.name}" and everything in it?`)) return;
+    if (!confirm(`¿Eliminar "${folder.name}" y todo su contenido?`)) return;
     await fetch(`/api/folders/${folder.id}`, { method: "DELETE" });
     load();
   }
@@ -214,7 +209,7 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
       blob,
       cachedAt: Date.now(),
     });
-    alert("File pinned for offline access");
+    alert("Archivo guardado para acceso sin conexión");
   }
 
   return (
@@ -233,7 +228,7 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
     >
       <div className={cn("drop-overlay", dragActive && "active")}>
         <div className="rounded-2xl bg-white p-8 text-xl font-semibold shadow-2xl dark:bg-slate-900">
-          Drop files to upload
+          Suelta los archivos para subirlos
         </div>
       </div>
 
@@ -256,7 +251,7 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
         </div>
         <input
           type="search"
-          placeholder="Search…"
+          placeholder="Buscar…"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -268,13 +263,13 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
           onClick={newFolder}
           className="rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
         >
-          + Folder
+          + Carpeta
         </button>
         <button
           onClick={() => inputRef.current?.click()}
           className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
         >
-          Upload
+          Subir
         </button>
         <input
           ref={inputRef}
@@ -303,19 +298,19 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
 
       <div className="flex-1 overflow-auto p-6">
         {loading ? (
-          <p className="text-slate-500">Loading…</p>
+          <p className="text-slate-500">Cargando…</p>
         ) : folders.length === 0 && files.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center text-slate-500">
             <span className="text-6xl">📂</span>
-            <p className="mt-4 text-lg">This folder is empty</p>
-            <p className="text-sm">Drag &amp; drop files anywhere or use the Upload button.</p>
+            <p className="mt-4 text-lg">Esta carpeta está vacía</p>
+            <p className="text-sm">Arrastra y suelta archivos o usa el botón Subir.</p>
           </div>
         ) : (
           <>
             {folders.length > 0 && (
               <>
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Folders
+                  Carpetas
                 </h3>
                 <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                   {folders.map((f) => (
@@ -337,13 +332,13 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
                           onClick={() => renameFolder(f)}
                           className="rounded px-2 py-0.5 text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
                         >
-                          Rename
+                          Renombrar
                         </button>
                         <button
                           onClick={() => deleteFolder(f)}
                           className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
                         >
-                          Delete
+                          Eliminar
                         </button>
                       </div>
                     </div>
@@ -354,7 +349,7 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
             {files.length > 0 && (
               <>
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Files
+                  Archivos
                 </h3>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                   {files.map((f) => (
@@ -389,16 +384,16 @@ export function FileBrowser({ folderId }: { folderId: string | null }) {
                         </div>
                         <div className="mt-1 flex flex-wrap gap-1 opacity-0 group-hover:opacity-100">
                           <button onClick={() => setSharing(f)} className="rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
-                            Share
+                            Compartir
                           </button>
                           <button onClick={() => renameFile(f)} className="rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
-                            Rename
+                            Renombrar
                           </button>
                           <button onClick={() => pinOffline(f)} className="rounded px-1.5 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-800">
-                            Offline
+                            Sin conexión
                           </button>
                           <button onClick={() => deleteFile(f)} className="rounded px-1.5 py-0.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30">
-                            Delete
+                            Eliminar
                           </button>
                         </div>
                       </div>

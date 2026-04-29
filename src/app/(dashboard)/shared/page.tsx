@@ -27,14 +27,14 @@ export default function SharedPage() {
   }, []);
 
   async function revoke(token: string) {
-    if (!confirm("Revoke this link?")) return;
+    if (!confirm("¿Revocar este enlace?")) return;
     await fetch(`/api/share/${token}`, { method: "DELETE" });
     load();
   }
 
   return (
     <div className="h-full overflow-auto p-6">
-      <h1 className="mb-6 text-2xl font-bold">Shared links</h1>
+      <h1 className="mb-6 text-2xl font-bold">Enlaces compartidos</h1>
       <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
         {shares.map((s) => {
           const url = `${window.location.origin}/share/${s.token}`;
@@ -43,10 +43,10 @@ export default function SharedPage() {
               <div className="flex-1">
                 <div className="font-medium">{s.file.name}</div>
                 <div className="text-xs text-slate-500">
-                  Created {formatDate(s.createdAt)} ·{" "}
-                  {s.expiresAt ? `expires ${formatDate(s.expiresAt)}` : "never expires"} ·{" "}
-                  {s.downloads} download(s)
-                  {s.passwordHash ? " · password protected" : ""}
+                  Creado {formatDate(s.createdAt)} ·{" "}
+                  {s.expiresAt ? `expira ${formatDate(s.expiresAt)}` : "no expira"} ·{" "}
+                  {s.downloads} descarga(s)
+                  {s.passwordHash ? " · protegido con contraseña" : ""}
                 </div>
                 <a
                   href={url}
@@ -61,19 +61,19 @@ export default function SharedPage() {
                 onClick={() => navigator.clipboard.writeText(url)}
                 className="rounded-md border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
               >
-                Copy link
+                Copiar enlace
               </button>
               <button
                 onClick={() => revoke(s.token)}
                 className="rounded-md bg-red-50 px-3 py-1.5 text-xs text-red-700 hover:bg-red-100 dark:bg-red-900/40 dark:text-red-200"
               >
-                Revoke
+                Revocar
               </button>
             </li>
           );
         })}
         {shares.length === 0 && (
-          <li className="p-6 text-center text-sm text-slate-500">No active shared links.</li>
+          <li className="p-6 text-center text-sm text-slate-500">No tienes enlaces activos.</li>
         )}
       </ul>
     </div>

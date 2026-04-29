@@ -25,7 +25,7 @@ export function ShareDialog({ fileId, onClose }: { fileId: string; onClose: () =
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Could not create link");
+      if (!res.ok) throw new Error(data.error || "No se pudo crear el enlace");
       setLink(`${window.location.origin}/share/${data.share.token}`);
     } catch (e: any) {
       setError(e.message);
@@ -40,22 +40,22 @@ export function ShareDialog({ fileId, onClose }: { fileId: string; onClose: () =
         className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-4 text-lg font-semibold">Share file</h2>
+        <h2 className="mb-4 text-lg font-semibold">Compartir archivo</h2>
         {!link ? (
           <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-sm font-medium">Password (optional)</label>
+              <label className="mb-1 block text-sm font-medium">Contraseña (opcional)</label>
               <input
                 type="text"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Leave empty for no password"
+                placeholder="Déjalo vacío para no usar contraseña"
                 className="w-full rounded-md border border-slate-300 px-3 py-2 dark:border-slate-700 dark:bg-slate-800"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-sm font-medium">Expires in (h)</label>
+                <label className="mb-1 block text-sm font-medium">Expira en (h)</label>
                 <input
                   type="number"
                   min={1}
@@ -67,7 +67,7 @@ export function ShareDialog({ fileId, onClose }: { fileId: string; onClose: () =
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">Max downloads</label>
+                <label className="mb-1 block text-sm font-medium">Descargas máx.</label>
                 <input
                   type="number"
                   min={1}
@@ -82,21 +82,21 @@ export function ShareDialog({ fileId, onClose }: { fileId: string; onClose: () =
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex justify-end gap-2 pt-2">
               <button onClick={onClose} className="rounded-md px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
-                Cancel
+                Cancelar
               </button>
               <button
                 onClick={create}
                 disabled={loading}
                 className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
               >
-                {loading ? "Creating…" : "Create link"}
+                {loading ? "Creando…" : "Crear enlace"}
               </button>
             </div>
           </div>
         ) : (
           <div className="space-y-3">
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              Share this link with others:
+              Comparte este enlace con quien quieras:
             </p>
             <input
               readOnly
@@ -109,13 +109,13 @@ export function ShareDialog({ fileId, onClose }: { fileId: string; onClose: () =
                 onClick={() => navigator.clipboard.writeText(link)}
                 className="rounded-md bg-slate-200 px-3 py-2 text-sm hover:bg-slate-300 dark:bg-slate-700"
               >
-                Copy
+                Copiar
               </button>
               <button
                 onClick={onClose}
                 className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
               >
-                Done
+                Listo
               </button>
             </div>
           </div>

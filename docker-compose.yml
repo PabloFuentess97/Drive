@@ -1,10 +1,21 @@
+# Stack completo de producción para PersonalDrive.
+#
+#  - db    : PostgreSQL 16 (datos en volumen `db-data`)
+#  - app   : la aplicación Next.js (almacenamiento de blobs en volumen `storage`)
+#  - caddy : reverse proxy con HTTPS automático vía Let's Encrypt
+#
+# El único contenedor expuesto a Internet es Caddy (puertos 80 y 443).
+# La app sólo es accesible dentro de la red interna de Docker.
+
+name: personaldrive
+
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-drive}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-drive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
       POSTGRES_DB: ${POSTGRES_DB:-drive}
     volumes:
       - db-data:/var/lib/postgresql/data
@@ -12,30 +23,60 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-drive} -d ${POSTGRES_DB:-drive}"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
+    networks:
+      - internal
 
   app:
     build: .
+    image: personal-drive:latest
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-drive}:${POSTGRES_PASSWORD:-drive}@db:5432/${POSTGRES_DB:-drive}?schema=public
-      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your .env}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-drive}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-drive}?schema=public
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env (openssl rand -base64 64)}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       STORAGE_DIR: /data/uploads
       DEFAULT_QUOTA_BYTES: ${DEFAULT_QUOTA_BYTES:-10737418240}
       MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-2147483648}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-PersonalDrive}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?Define NEXT_PUBLIC_APP_URL en .env}
     volumes:
       - storage:/data/uploads
+    networks:
+      - internal
+    # No exponemos el puerto 3000 al host: el tráfico llega vía caddy.
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    environment:
+      DOMAIN: ${DOMAIN:?Define DOMAIN en .env (p. ej. drive.pablofuentes.org)}
+      ACME_EMAIL: ${ACME_EMAIL:?Define ACME_EMAIL en .env}
+      MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-2GB}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
 
 volumes:
   db-data:
   storage:
+  caddy-data:
+  caddy-config:

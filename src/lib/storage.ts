@@ -17,7 +17,7 @@ export function objectPath(userId: string, storageKey: string) {
   // (cuid()-based), so it's safe. We still resolve and validate.
   const full = path.resolve(userRoot(userId), storageKey);
   if (!full.startsWith(userRoot(userId) + path.sep) && full !== userRoot(userId)) {
-    throw new Error("Invalid storage path");
+    throw new Error("Ruta de almacenamiento no válida");
   }
   return full;
 }

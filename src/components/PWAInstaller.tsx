@@ -42,7 +42,7 @@ export function PWAInstaller() {
       }}
       className="fixed bottom-4 right-4 z-40 rounded-full bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-lg hover:bg-brand-700"
     >
-      Install app
+      Instalar app
     </button>
   );
 }

@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { href: "/drive", label: "My Drive", icon: "📁" },
-  { href: "/recent", label: "Recent", icon: "🕐" },
-  { href: "/shared", label: "Shared", icon: "🔗" },
-  { href: "/account", label: "Account", icon: "👤" },
+  { href: "/drive", label: "Mi unidad", icon: "📁" },
+  { href: "/recent", label: "Recientes", icon: "🕐" },
+  { href: "/shared", label: "Compartidos", icon: "🔗" },
+  { href: "/account", label: "Mi cuenta", icon: "👤" },
 ];
 
 export function Sidebar() {

@@ -12,12 +12,12 @@ export async function POST(req: Request) {
   try {
     parsed = Body.parse(await req.json());
   } catch (e: any) {
-    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+    return NextResponse.json({ error: "Datos no válidos" }, { status: 400 });
   }
 
   const user = await authenticate(parsed.email, parsed.password);
   if (!user) {
-    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    return NextResponse.json({ error: "Correo o contraseña incorrectos" }, { status: 401 });
   }
   await issueSession(user.id, user.email, user.role);
   return NextResponse.json({

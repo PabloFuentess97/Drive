@@ -26,7 +26,7 @@ export default function RecentPage() {
 
   return (
     <div className="h-full overflow-auto p-6">
-      <h1 className="mb-6 text-2xl font-bold">Recent files</h1>
+      <h1 className="mb-6 text-2xl font-bold">Archivos recientes</h1>
       <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
         {files.map((f) => (
           <li key={f.id}>
@@ -45,7 +45,7 @@ export default function RecentPage() {
           </li>
         ))}
         {files.length === 0 && (
-          <li className="p-6 text-center text-sm text-slate-500">No files yet</li>
+          <li className="p-6 text-center text-sm text-slate-500">Aún no hay archivos</li>
         )}
       </ul>
       {preview && <FilePreview file={preview} onClose={() => setPreview(null)} />}

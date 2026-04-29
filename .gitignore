@@ -36,6 +36,7 @@ yarn-error.log*
 # Storage
 uploads/
 storage/
+backups/
 
 # Prisma
 prisma/dev.db

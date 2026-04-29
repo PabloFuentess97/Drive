@@ -1,7 +1,8 @@
 {
   "name": "PersonalDrive",
   "short_name": "Drive",
-  "description": "Self-hosted personal drive",
+  "description": "Almacenamiento personal autohospedado",
+  "lang": "es",
   "start_url": "/drive",
   "scope": "/",
   "display": "standalone",
@@ -23,7 +24,7 @@
     }
   ],
   "shortcuts": [
-    { "name": "My Drive", "url": "/drive", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Recent", "url": "/recent" }
+    { "name": "Mi unidad", "url": "/drive", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Recientes", "url": "/recent" }
   ]
 }

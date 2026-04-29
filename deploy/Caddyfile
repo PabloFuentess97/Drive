@@ -1,0 +1,52 @@
+# Caddyfile usado por el contenedor `caddy` del docker-compose.
+# Configura HTTPS automático vía Let's Encrypt.
+#
+# Variables de entorno requeridas (definidas en .env):
+#   DOMAIN          – p. ej. drive.pablofuentes.org
+#   ACME_EMAIL      – correo para los avisos de renovación de Let's Encrypt
+#   MAX_UPLOAD_SIZE – p. ej. 2GB (debe ser ≥ MAX_UPLOAD_BYTES)
+
+{
+    email {$ACME_EMAIL}
+    # Descomenta esto para usar el entorno de pruebas de Let's Encrypt mientras
+    # configuras DNS y evitar agotar el rate limit:
+    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+    servers {
+        protocols h1 h2 h3
+    }
+}
+
+{$DOMAIN} {
+    encode zstd gzip
+
+    # Cabeceras de seguridad razonables.
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options    "nosniff"
+        X-Frame-Options           "SAMEORIGIN"
+        Referrer-Policy           "strict-origin-when-cross-origin"
+        Permissions-Policy        "geolocation=(), microphone=(), camera=()"
+        -Server
+    }
+
+    # Permite subidas grandes (vídeo, etc.).
+    request_body {
+        max_size {$MAX_UPLOAD_SIZE}
+    }
+
+    # Timeouts amplios para subidas/descargas largas.
+    reverse_proxy app:3000 {
+        transport http {
+            read_timeout  30m
+            write_timeout 30m
+        }
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-For   {remote_host}
+        header_up Host              {host}
+    }
+
+    log {
+        output stdout
+        format console
+    }
+}

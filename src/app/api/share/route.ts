@@ -15,11 +15,11 @@ const Body = z.object({
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const data = Body.parse(await req.json());
   const file = await prisma.file.findFirst({ where: { id: data.fileId, ownerId: user.id } });
-  if (!file) return NextResponse.json({ error: "File not found" }, { status: 404 });
+  if (!file) return NextResponse.json({ error: "Archivo no encontrado" }, { status: 404 });
 
   const token = randomBytes(24).toString("base64url");
   const expiresAt = data.expiresInHours
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
 export async function GET() {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const shares = await prisma.share.findMany({
     where: { ownerId: user.id },

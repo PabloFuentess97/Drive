@@ -15,16 +15,16 @@ const Patch = z.object({
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const file = await prisma.file.findFirst({ where: { id: params.id, ownerId: user.id } });
-  if (!file) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!file) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   const data = Patch.parse(await req.json());
 
   if (data.folderId) {
     const folder = await prisma.folder.findFirst({ where: { id: data.folderId, ownerId: user.id } });
-    if (!folder) return NextResponse.json({ error: "Folder not found" }, { status: 404 });
+    if (!folder) return NextResponse.json({ error: "Carpeta no encontrada" }, { status: 404 });
   }
 
   const updated = await prisma.file.update({
@@ -41,10 +41,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 // DELETE /api/files/[id]
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const file = await prisma.file.findFirst({ where: { id: params.id, ownerId: user.id } });
-  if (!file) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!file) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   await prisma.$transaction(async (tx) => {
     await tx.file.delete({ where: { id: file.id } });

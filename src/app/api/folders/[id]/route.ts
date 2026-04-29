@@ -14,12 +14,12 @@ const Patch = z.object({
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const folder = await prisma.folder.findFirst({
     where: { id: params.id, ownerId: user.id },
   });
-  if (!folder) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!folder) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   // breadcrumb
   const trail: { id: string; name: string }[] = [];
@@ -39,24 +39,24 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const folder = await prisma.folder.findFirst({ where: { id: params.id, ownerId: user.id } });
-  if (!folder) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!folder) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   const data = Patch.parse(await req.json());
 
   if (data.parentId === folder.id) {
-    return NextResponse.json({ error: "A folder cannot be its own parent" }, { status: 400 });
+    return NextResponse.json({ error: "Una carpeta no puede ser su propia carpeta padre" }, { status: 400 });
   }
   if (data.parentId) {
     const parent = await prisma.folder.findFirst({ where: { id: data.parentId, ownerId: user.id } });
-    if (!parent) return NextResponse.json({ error: "Parent not found" }, { status: 404 });
+    if (!parent) return NextResponse.json({ error: "Carpeta padre no encontrada" }, { status: 404 });
     // Prevent moving into a descendant.
     let cur: typeof parent | null = parent;
     while (cur) {
       if (cur.parentId === folder.id) {
-        return NextResponse.json({ error: "Cannot move a folder into its descendant" }, { status: 400 });
+        return NextResponse.json({ error: "No puedes mover una carpeta dentro de una de sus subcarpetas" }, { status: 400 });
       }
       cur = cur.parentId
         ? await prisma.folder.findFirst({ where: { id: cur.parentId, ownerId: user.id } })
@@ -77,10 +77,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 // Recursive delete: remove all nested files (with their objects) and folders.
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const folder = await prisma.folder.findFirst({ where: { id: params.id, ownerId: user.id } });
-  if (!folder) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!folder) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   const folderIds = await collectDescendants(folder.id, user.id);
   folderIds.push(folder.id);

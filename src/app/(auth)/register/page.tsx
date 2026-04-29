@@ -23,7 +23,7 @@ export default function RegisterPage() {
         body: JSON.stringify({ email, password, name }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Registration failed");
+      if (!res.ok) throw new Error(data.error || "No se pudo crear la cuenta");
       router.push("/drive");
       router.refresh();
     } catch (err: any) {
@@ -44,14 +44,14 @@ export default function RegisterPage() {
         onSubmit={onSubmit}
         className="space-y-4 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900"
       >
-        <h1 className="text-2xl font-semibold">Create your account</h1>
+        <h1 className="text-2xl font-semibold">Crea tu cuenta</h1>
         {error && (
           <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/40 dark:text-red-200">
             {error}
           </div>
         )}
         <div>
-          <label className="mb-1 block text-sm font-medium">Name</label>
+          <label className="mb-1 block text-sm font-medium">Nombre</label>
           <input
             type="text"
             value={name}
@@ -60,7 +60,7 @@ export default function RegisterPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Email</label>
+          <label className="mb-1 block text-sm font-medium">Correo electrónico</label>
           <input
             type="email"
             required
@@ -70,7 +70,7 @@ export default function RegisterPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Password</label>
+          <label className="mb-1 block text-sm font-medium">Contraseña</label>
           <input
             type="password"
             required
@@ -85,12 +85,12 @@ export default function RegisterPage() {
           disabled={loading}
           className="w-full rounded-md bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
         >
-          {loading ? "Creating…" : "Create account"}
+          {loading ? "Creando…" : "Crear cuenta"}
         </button>
         <p className="text-center text-sm text-slate-500">
-          Already have an account?{" "}
+          ¿Ya tienes cuenta?{" "}
           <Link href="/login" className="text-brand-600 hover:underline">
-            Sign in
+            Iniciar sesión
           </Link>
         </p>
       </form>

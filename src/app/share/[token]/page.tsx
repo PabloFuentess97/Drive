@@ -18,7 +18,7 @@ export default function PublicSharePage({ params }: { params: { token: string } 
     setError(null);
     const res = await fetch(url, { method: "HEAD" }).catch(() => null);
     if (!res) {
-      setError("Cannot reach server");
+      setError("No se puede contactar con el servidor");
       return;
     }
     if (res.status === 401) {
@@ -32,7 +32,7 @@ export default function PublicSharePage({ params }: { params: { token: string } 
     const dispo = res.headers.get("content-disposition") || "";
     const m = /filename\*=UTF-8''([^;]+)/.exec(dispo);
     setMeta({
-      name: m ? decodeURIComponent(m[1]) : "shared file",
+      name: m ? decodeURIComponent(m[1]) : "archivo compartido",
       mimeType: res.headers.get("content-type") || "application/octet-stream",
     });
     setNeedsPassword(false);
@@ -45,23 +45,23 @@ export default function PublicSharePage({ params }: { params: { token: string } 
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-6 py-12">
-      <h1 className="mb-2 text-2xl font-bold">Shared file</h1>
+      <h1 className="mb-2 text-2xl font-bold">Archivo compartido</h1>
       {error && <p className="text-sm text-red-600">{error}</p>}
       {needsPassword ? (
         <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-          <p className="mb-3 text-sm">This link is password protected.</p>
+          <p className="mb-3 text-sm">Este enlace está protegido con contraseña.</p>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
+            placeholder="Contraseña"
             className="mb-3 w-full rounded-md border border-slate-300 px-3 py-2 dark:border-slate-700 dark:bg-slate-800"
           />
           <button
             onClick={check}
             className="w-full rounded-md bg-brand-600 px-3 py-2 text-white hover:bg-brand-700"
           >
-            Unlock
+            Desbloquear
           </button>
         </div>
       ) : meta ? (
@@ -83,11 +83,11 @@ export default function PublicSharePage({ params }: { params: { token: string } 
             download={meta.name}
             className="mt-4 inline-block rounded-md bg-brand-600 px-4 py-2 text-white hover:bg-brand-700"
           >
-            Download
+            Descargar
           </a>
         </div>
       ) : (
-        <p>Loading…</p>
+        <p>Cargando…</p>
       )}
     </main>
   );

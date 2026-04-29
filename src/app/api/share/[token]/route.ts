@@ -16,17 +16,17 @@ export async function GET(req: Request, { params }: { params: { token: string } 
     where: { token: params.token },
     include: { file: true },
   });
-  if (!share) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!share) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   if (share.expiresAt && share.expiresAt < new Date()) {
-    return NextResponse.json({ error: "Share expired" }, { status: 410 });
+    return NextResponse.json({ error: "El enlace ha caducado" }, { status: 410 });
   }
   if (share.maxDownloads && share.downloads >= share.maxDownloads) {
-    return NextResponse.json({ error: "Download limit reached" }, { status: 410 });
+    return NextResponse.json({ error: "Límite de descargas alcanzado" }, { status: 410 });
   }
   if (share.passwordHash) {
     if (!password || !(await verifyPassword(password, share.passwordHash))) {
-      return NextResponse.json({ error: "Password required" }, { status: 401 });
+      return NextResponse.json({ error: "Contraseña requerida" }, { status: 401 });
     }
   }
 
@@ -71,7 +71,7 @@ export async function GET(req: Request, { params }: { params: { token: string } 
 // DELETE /api/share/[token] -> revoke
 export async function DELETE(_req: Request, { params }: { params: { token: string } }) {
   const share = await prisma.share.findUnique({ where: { token: params.token } });
-  if (!share) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!share) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
   await prisma.share.delete({ where: { id: share.id } });
   return NextResponse.json({ ok: true });
 }

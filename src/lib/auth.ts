@@ -18,7 +18,7 @@ export async function verifyPassword(plain: string, hash: string) {
 export async function createUser(email: string, password: string, name?: string) {
   const normalized = email.trim().toLowerCase();
   const exists = await prisma.user.findUnique({ where: { email: normalized } });
-  if (exists) throw new Error("Email already in use");
+  if (exists) throw new Error("Ese correo ya está registrado");
 
   const role = adminEmails.includes(normalized) ? "ADMIN" : "USER";
 
@@ -78,6 +78,6 @@ export async function getCurrentUser() {
 
 export async function requireUser() {
   const user = await getCurrentUser();
-  if (!user) throw new Response("Unauthorized", { status: 401 });
+  if (!user) throw new Response("No autorizado", { status: 401 });
   return user;
 }

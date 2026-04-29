@@ -10,14 +10,14 @@ export const dynamic = "force-dynamic";
 // GET /api/files/[id]/download?thumb=1&disposition=attachment|inline
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const url = new URL(req.url);
   const useThumb = url.searchParams.get("thumb") === "1";
   const disposition = url.searchParams.get("disposition") === "attachment" ? "attachment" : "inline";
 
   const file = await prisma.file.findFirst({ where: { id: params.id, ownerId: user.id } });
-  if (!file) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!file) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   const key = useThumb && file.thumbnailKey ? file.thumbnailKey : file.storageKey;
   const mime = useThumb && file.thumbnailKey ? "image/webp" : file.mimeType;

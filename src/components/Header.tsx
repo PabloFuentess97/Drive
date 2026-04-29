@@ -41,7 +41,7 @@ export function Header() {
       <div className="text-sm text-slate-500">
         {me ? (
           <span>
-            Signed in as <strong>{me.name || me.email}</strong>
+            Conectado como <strong>{me.name || me.email}</strong>
           </span>
         ) : (
           "…"
@@ -66,7 +66,7 @@ export function Header() {
           onClick={logout}
           className="rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
         >
-          Sign out
+          Cerrar sesión
         </button>
       </div>
     </header>
